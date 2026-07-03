@@ -61,6 +61,22 @@ export default function BookingModal({ open, onClose, prefill }) {
     setPhoneErr('');
     setSending(true);
 
+    // Redirect only after the endpoint confirms the lead is stored,
+    // with a 2.5s cap so a slow server never strands the visitor.
+    // keepalive stays on as a safety net if the cap fires first.
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      window.location.href =
+        SCHED_URL +
+        '&name=' + encodeURIComponent(nm) +
+        '&email=' + encodeURIComponent(em) +
+        '&company=' + encodeURIComponent(co) +
+        '&phone=' + encodeURIComponent(ph) +
+        '&wa=' + encodeURIComponent(waVal ? '+91' + waVal : '');
+    };
+
     try {
       fetch(LEAD_ENDPOINT, {
         method: 'POST',
@@ -74,20 +90,13 @@ export default function BookingModal({ open, onClose, prefill }) {
           company: co,
           lead_magnet: LEAD_MAGNET,
           source: 'landing-booking',
+          page: window.location.href,
           ts: new Date().toISOString(),
         }),
-      });
-    } catch (e) { /* fire and forget */ }
+      }).then(go, go);
+    } catch (e) { go(); }
 
-    setTimeout(() => {
-      window.location.href =
-        SCHED_URL +
-        '&name=' + encodeURIComponent(nm) +
-        '&email=' + encodeURIComponent(em) +
-        '&company=' + encodeURIComponent(co) +
-        '&phone=' + encodeURIComponent(ph) +
-        '&wa=' + encodeURIComponent(waVal ? '+91' + waVal : '');
-    }, 900);
+    setTimeout(go, 2500);
   };
 
   return (

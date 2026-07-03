@@ -16,9 +16,11 @@ document.getElementById('send').addEventListener('click',function(){
   if(nm.length<2){err.textContent='Please enter your full name.';return;}
   if(!isEmail(em)){err.textContent='Please enter a valid work email.';return;}
   var btn=this;btn.disabled=true;btn.classList.add('sent');btn.textContent='Sending it to your inbox...';
-  var payload={name:nm,email:em,lead_magnet:'7 Ways a Manufacturing Plant Dies',source:'optin',ts:new Date().toISOString()};
-  try{fetch(LEAD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true});}catch(e){}
-  setTimeout(function(){location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);},1100);
+  var payload={name:nm,email:em,lead_magnet:'7 Ways a Manufacturing Plant Dies',source:'optin',page:window.location.href,ts:new Date().toISOString()};
+  var done=false;
+  function go(){if(done)return;done=true;location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);}
+  try{fetch(LEAD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true}).then(go,go);}catch(e){go();}
+  setTimeout(go,2500);
 });
 ;
 (function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});})();
