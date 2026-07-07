@@ -1,5 +1,5 @@
 export function run(){
-var LEAD_WEBHOOK_URL='submit.php';
+var LEAD_WEBHOOK_URL='https://getnos.io/monoedge/submit.php';
 var LANDING_URL='landing.html?v=1781847973';
 var modal=document.getElementById('m');
 function openM(){modal.classList.add('on');document.body.style.overflow='hidden';setTimeout(function(){var e=document.getElementById('fname');if(e)e.focus();},120);}

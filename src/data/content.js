@@ -2,7 +2,7 @@
 // components stay structural. Editing wording is a one-file job.
 
 export const SCHED_URL = 'scheduling.html?v=1781847973';
-export const LEAD_ENDPOINT = 'submit.php';
+export const LEAD_ENDPOINT = 'https://getnos.io/monoedge/submit.php';
 export const LEAD_MAGNET = '7 Ways a Manufacturing Plant Dies';
 
 export const trustItems = [
