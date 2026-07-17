@@ -8,7 +8,7 @@ if(co){document.getElementById('r_co').textContent=co;}else{document.getElementB
 var q='hide_gdpr_banner=1&primary_color=5e0ed7';
 if(nm)q+='&name='+encodeURIComponent(nm);
 if(em)q+='&email='+encodeURIComponent(em);
-var calUrl='https://calendly.com/krishna-monoedge/30min?'+q;
+var calUrl='https://calendly.com/krishna-monoedge/new-meeting?'+q;
 document.getElementById('callink').href=calUrl;
 function initCal(){
   if(window.Calendly){
