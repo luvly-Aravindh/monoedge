@@ -29,13 +29,13 @@ export const industryLabels = {
 };
 
 export const marqueeFrames = [
-  { src: 'https://images.unsplash.com/photo-1742967422150-df4a56b1d198?auto=format&fit=crop&w=600&q=62', cap: 'Textile, prepping the line' },
-  { src: 'https://images.unsplash.com/photo-1496247749665-49cf5b1022e9?auto=format&fit=crop&w=600&q=62', cap: 'Inside a working plant' },
-  { src: 'https://images.unsplash.com/photo-1647427060118-4911c9821b82?auto=format&fit=crop&w=600&q=62', cap: 'Production in full swing' },
-  { src: 'https://images.unsplash.com/photo-1742967422135-616546e2ff25?auto=format&fit=crop&w=600&q=62', cap: 'On the floor, where it happens' },
-  { src: 'https://images.unsplash.com/photo-1745921204896-c2011440a4e2?auto=format&fit=crop&w=600&q=62', cap: 'Machinery that talks, if you read it' },
-  { src: 'https://images.unsplash.com/photo-1716643863806-989dd76ae093?auto=format&fit=crop&w=600&q=62', cap: 'Every machine, a data source' },
-  { src: 'https://images.unsplash.com/photo-1567789884554-0b844b597180?auto=format&fit=crop&w=600&q=62', cap: 'The line, end to end' },
+  { src: 'https://images.unsplash.com/photo-1742967422150-df4a56b1d198?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'Textile, prepping the line' },
+  { src: 'https://images.unsplash.com/photo-1496247749665-49cf5b1022e9?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'Inside a working plant' },
+  { src: 'https://images.unsplash.com/photo-1647427060118-4911c9821b82?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'Production in full swing' },
+  { src: 'https://images.unsplash.com/photo-1742967422135-616546e2ff25?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'On the floor, where it happens' },
+  { src: 'https://images.unsplash.com/photo-1745921204896-c2011440a4e2?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'Machinery that talks, if you read it' },
+  { src: 'https://images.unsplash.com/photo-1716643863806-989dd76ae093?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'Every machine, a data source' },
+  { src: 'https://images.unsplash.com/photo-1567789884554-0b844b597180?auto=format&fm=webp&fit=crop&w=600&q=62', cap: 'The line, end to end' },
 ];
 
 export const problemCards = [

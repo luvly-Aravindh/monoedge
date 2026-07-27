@@ -4,24 +4,22 @@ import { SCHED_URL, LEAD_ENDPOINT, LEAD_MAGNET } from '../data/content.js';
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 const digits10 = (v) => v.replace(/[^0-9]/g, '').slice(0, 10);
 
-// Booking modal. Shows a recap for warm (pre-identified) visitors and a full
-// form for cold ones. Validates, fires the lead to the PHP endpoint, then
-// redirects to the scheduler, exactly as the original page did.
+// Booking modal. Collects company + mobile on the landing page, then sends
+// name/email/phone into Calendly so the calendar is prefilled.
 export default function BookingModal({ open, onClose, prefill }) {
   const { name: pName, email: pEmail, phone: pPhone, first, warm } = prefill;
 
   const [showCold, setShowCold] = useState(!warm);
   const [cName, setCName] = useState('');
   const [cEmail, setCEmail] = useState('');
-  const [cPhone, setCPhone] = useState('');
+  const [cPhone, setCPhone] = useState(() => digits10(pPhone || ''));
   const [company, setCompany] = useState('');
-  const [wa, setWa] = useState('');
   const [err, setErr] = useState('');
   const [phoneErr, setPhoneErr] = useState('');
   const [sending, setSending] = useState(false);
   const companyRef = useRef(null);
+  const modalRef = useRef(null);
 
-  // Body scroll lock, focus and Escape handling while the modal is open.
   useEffect(() => {
     if (!open) return;
     document.body.style.overflow = 'hidden';
@@ -35,11 +33,45 @@ export default function BookingModal({ open, onClose, prefill }) {
     };
   }, [open, onClose]);
 
+  // Keep focused fields visible above the mobile keyboard.
+  useEffect(() => {
+    if (!open) return;
+    const root = modalRef.current;
+    if (!root) return;
+
+    const onFocusIn = (e) => {
+      const el = e.target;
+      if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
+      const scroll = () => {
+        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+      };
+      setTimeout(scroll, 50);
+      setTimeout(scroll, 320);
+    };
+
+    const onResize = () => {
+      const active = document.activeElement;
+      if (!active || !root.contains(active)) return;
+      if (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA') return;
+      active.scrollIntoView({ block: 'center', inline: 'nearest' });
+    };
+
+    root.addEventListener('focusin', onFocusIn);
+    const vv = window.visualViewport;
+    if (vv) vv.addEventListener('resize', onResize);
+    window.addEventListener('resize', onResize);
+    return () => {
+      root.removeEventListener('focusin', onFocusIn);
+      if (vv) vv.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open]);
+
   const onEdit = () => {
     setShowCold(true);
     setCName(pName);
     setCEmail(pEmail);
-    setCPhone(pPhone);
+    setCPhone(digits10(pPhone || cPhone));
   };
 
   const onBackdrop = (e) => { if (e.target === e.currentTarget) onClose(); };
@@ -48,22 +80,19 @@ export default function BookingModal({ open, onClose, prefill }) {
     const cold = showCold;
     const nm = cold ? cName.trim() : pName;
     const em = cold ? cEmail.trim() : pEmail;
-    const ph = cold ? cPhone.trim() : pPhone;
+    const ph = digits10(cPhone);
     const co = company.trim();
-    const waVal = wa.trim();
 
     if (cold && nm.length < 2) { setErr('Please enter your full name.'); return; }
     if (cold && !isEmail(em)) { setErr('Please enter a valid work email.'); return; }
-    if (cold && ph.replace(/[^0-9]/g, '').length !== 10) { setPhoneErr('Please enter a valid 10 digit mobile number.'); return; }
     if (co.length < 2) { setErr('Please enter your company name.'); return; }
-    if (waVal.length > 0 && waVal.length < 10) { setErr('Please enter a valid 10 digit WhatsApp number.'); return; }
+    if (ph.length !== 10) { setPhoneErr('Please enter a valid 10 digit mobile number.'); return; }
     setErr('');
     setPhoneErr('');
     setSending(true);
 
-    // Redirect only after the endpoint confirms the lead is stored,
-    // with a 2.5s cap so a slow server never strands the visitor.
-    // keepalive stays on as a safety net if the cap fires first.
+    const phoneE164 = '+91' + ph;
+
     let done = false;
     const go = () => {
       if (done) return;
@@ -73,8 +102,7 @@ export default function BookingModal({ open, onClose, prefill }) {
         '&name=' + encodeURIComponent(nm) +
         '&email=' + encodeURIComponent(em) +
         '&company=' + encodeURIComponent(co) +
-        '&phone=' + encodeURIComponent(ph) +
-        '&wa=' + encodeURIComponent(waVal ? '+91' + waVal : '');
+        '&phone=' + encodeURIComponent(phoneE164);
     };
 
     try {
@@ -85,8 +113,8 @@ export default function BookingModal({ open, onClose, prefill }) {
         body: JSON.stringify({
           name: nm,
           email: em,
-          phone: ph ? '+91' + ph : '',
-          whatsapp: waVal ? '+91' + waVal : '',
+          phone: phoneE164,
+          whatsapp: '',
           company: co,
           lead_magnet: LEAD_MAGNET,
           source: 'landing-booking',
@@ -100,12 +128,12 @@ export default function BookingModal({ open, onClose, prefill }) {
   };
 
   return (
-    <div className={open ? 'modal on' : 'modal'} id="m" onClick={onBackdrop}>
+    <div className={open ? 'modal on' : 'modal'} id="m" ref={modalRef} onClick={onBackdrop}>
       <div className="mcard">
         <button aria-label="Close" className="mx" id="mx" onClick={onClose}>×</button>
         <div className="m-ey">Book your demo</div>
         <h2 id="greet">{warm ? `One last detail, ${first}.` : 'One last detail.'}</h2>
-        <p className="m-sub">Tell us where you work and we will take you straight to the calendar.</p>
+        <p className="m-sub">Tell us where you work and your mobile — we will take you to the calendar with your details filled in.</p>
 
         {warm && !showCold && (
           <div className="prefill" id="recap">
@@ -148,26 +176,6 @@ export default function BookingModal({ open, onClose, prefill }) {
                 onChange={(e) => setCEmail(e.target.value)}
               />
             </div>
-            <div className="fld">
-              <label htmlFor="c_phone">Mobile number</label>
-              <div className="phone">
-                <span className="cc">
-                  <span className="tri"><i /><i /><i /></span>
-                  +91
-                </span>
-                <input
-                  id="c_phone"
-                  className={phoneErr ? 'input-err' : undefined}
-                  inputMode="numeric"
-                  placeholder="98765 43210"
-                  type="tel"
-                  value={cPhone}
-                  onChange={(e) => { const v = digits10(e.target.value); setCPhone(v); if (phoneErr && (v.length === 10 || v.length === 0)) setPhoneErr(''); }}
-                  onBlur={() => { if (cPhone.length > 0 && cPhone.length !== 10) setPhoneErr('Please enter a valid 10 digit mobile number.'); }}
-                />
-              </div>
-              {phoneErr && <div className="fld-err">{phoneErr}</div>}
-            </div>
           </div>
         )}
 
@@ -183,22 +191,35 @@ export default function BookingModal({ open, onClose, prefill }) {
             onChange={(e) => setCompany(e.target.value)}
           />
         </div>
+
         <div className="fld">
-          <label htmlFor="wa">WhatsApp number</label>
+          <label htmlFor="c_phone">Mobile number</label>
           <div className="phone">
             <span className="cc">
               <span className="tri"><i /><i /><i /></span>
               +91
             </span>
             <input
-              id="wa"
+              id="c_phone"
+              className={phoneErr ? 'input-err' : undefined}
+              autoComplete="tel-national"
               inputMode="numeric"
               placeholder="98765 43210"
               type="tel"
-              value={wa}
-              onChange={(e) => setWa(digits10(e.target.value))}
+              value={cPhone}
+              onChange={(e) => {
+                const v = digits10(e.target.value);
+                setCPhone(v);
+                if (phoneErr && (v.length === 10 || v.length === 0)) setPhoneErr('');
+              }}
+              onBlur={() => {
+                if (cPhone.length > 0 && cPhone.length !== 10) {
+                  setPhoneErr('Please enter a valid 10 digit mobile number.');
+                }
+              }}
             />
           </div>
+          {phoneErr && <div className="fld-err">{phoneErr}</div>}
         </div>
 
         <div className="err" id="err">{err}</div>

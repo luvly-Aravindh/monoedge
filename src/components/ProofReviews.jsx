@@ -2,9 +2,9 @@ import { reviews } from '../data/content.js';
 import NetCanvas from './NetCanvas.jsx';
 import CtaButton from './CtaButton.jsx';
 
-import rev1 from '../../public/img/rev1.png';
-import rev2 from '../../public/img/rev2.png';
-import rev4 from '../../public/img/rev4.png';
+import rev1 from '../../public/img/rev1.webp';
+import rev2 from '../../public/img/rev2.webp';
+import rev4 from '../../public/img/rev4.webp';
 
 const avatarMap = { rev1, rev2, rev4 };
 
@@ -28,7 +28,15 @@ export default function ProofReviews({ onOpen }) {
               <div className="stars">★★★★★</div>
               <p>{r.text}</p>
               <div className="rev__by">
-                <img alt={r.alt} className="rev__av rev__av--img" src={avatarMap[r.avatar]} />
+                <img
+                  alt={r.alt}
+                  className="rev__av rev__av--img"
+                  src={avatarMap[r.avatar]}
+                  width={44}
+                  height={44}
+                  loading="lazy"
+                  decoding="async"
+                />
                 <div>
                   <div className="rev__n">{r.name}</div>
                   <div className="rev__p">{r.role}</div>

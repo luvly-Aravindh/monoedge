@@ -6,7 +6,7 @@ import rawBody from './pages/thankyou.body.html?raw';
 import { run } from './pages/thankyou.logic.js';
 import Page from './Page.jsx';
 
-import bbLogo from '../public/img/bb-logo.png';
+import bbLogo from '../public/img/bb-logo.webp';
 
 const body = rawBody.split('src="/img/bb-logo.png"').join(`src="${bbLogo}"`);
 

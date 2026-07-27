@@ -1,39 +1,52 @@
 import { useEffect, useRef } from 'react';
 
-// Animated particle network drawn onto a <canvas>. Each instance sizes itself
-// to its parent and runs its own RAF loop. `color` is an "r,g,b" string.
+// Animated particle network. Pauses off-screen and respects reduced motion.
 export default function NetCanvas({ color = '94,14,215', className = 'netbg' }) {
   const ref = useRef(null);
 
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-    const ctx = cv.getContext('2d');
+    const ctx = cv.getContext('2d', { alpha: true });
     const pa = cv.parentElement;
-    let W = 0, H = 0, pts = [], raf, ro;
+    let W = 0, H = 0, pts = [], raf, ro, io, running = false;
+
+    const reduced =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const size = () => {
-      W = cv.width = pa.offsetWidth || 1;
-      H = cv.height = pa.offsetHeight || 1;
-      const n = Math.max(10, Math.min(46, Math.round((W * H) / 19000)));
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      W = pa.offsetWidth || 1;
+      H = pa.offsetHeight || 1;
+      cv.width = Math.floor(W * dpr);
+      cv.height = Math.floor(H * dpr);
+      cv.style.width = W + 'px';
+      cv.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const isMobile = W < 720;
+      const density = isMobile ? 42000 : 22000;
+      const cap = isMobile ? 18 : 36;
+      const n = reduced ? 0 : Math.max(8, Math.min(cap, Math.round((W * H) / density)));
       pts = [];
       for (let i = 0; i < n; i++) {
         pts.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          vx: (Math.random() - 0.5) * 0.34,
-          vy: (Math.random() - 0.5) * 0.34,
+          vx: (Math.random() - 0.5) * 0.28,
+          vy: (Math.random() - 0.5) * 0.28,
         });
+      }
+      if (reduced || n === 0) {
+        ctx.clearRect(0, 0, W, H);
       }
     };
 
-    size();
-    if (window.ResizeObserver) {
-      try { ro = new ResizeObserver(size); ro.observe(pa); } catch (e) { /* noop */ }
-    }
-
     const frame = () => {
+      if (!running) return;
       ctx.clearRect(0, 0, W, H);
+      const linkDist = W < 720 ? 9000 : 13500;
       for (let i = 0; i < pts.length; i++) {
         const a = pts[i];
         a.x += a.vx; a.y += a.vy;
@@ -45,8 +58,8 @@ export default function NetCanvas({ color = '94,14,215', className = 'netbg' }) 
         ctx.fill();
         for (let j = i + 1; j < pts.length; j++) {
           const b = pts[j], dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy;
-          if (d2 < 13500) {
-            const o = 0.16 * (1 - d2 / 13500);
+          if (d2 < linkDist) {
+            const o = 0.16 * (1 - d2 / linkDist);
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
@@ -58,11 +71,47 @@ export default function NetCanvas({ color = '94,14,215', className = 'netbg' }) 
       }
       raf = requestAnimationFrame(frame);
     };
-    frame();
+
+    const start = () => {
+      if (running || reduced || pts.length === 0) return;
+      running = true;
+      raf = requestAnimationFrame(frame);
+    };
+    const stop = () => {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+    };
+
+    size();
+    if (window.ResizeObserver) {
+      try { ro = new ResizeObserver(size); ro.observe(pa); } catch (e) { /* noop */ }
+    }
+
+    if ('IntersectionObserver' in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          const vis = entries.some((e) => e.isIntersecting);
+          if (vis) start();
+          else stop();
+        },
+        { rootMargin: '40px', threshold: 0.01 },
+      );
+      io.observe(pa);
+    } else {
+      start();
+    }
+
+    const onVis = () => {
+      if (document.hidden) stop();
+      else if (pa.getBoundingClientRect().bottom > 0 && pa.getBoundingClientRect().top < window.innerHeight) start();
+    };
+    document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       if (ro) ro.disconnect();
+      if (io) io.disconnect();
+      document.removeEventListener('visibilitychange', onVis);
     };
   }, [color]);
 

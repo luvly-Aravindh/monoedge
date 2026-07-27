@@ -8,6 +8,25 @@ document.querySelectorAll('[data-open]').forEach(function(b){b.addEventListener(
 document.getElementById('mx').addEventListener('click',closeM);
 modal.addEventListener('click',function(e){if(e.target===modal)closeM();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.classList.contains('on'))closeM();});
+
+// Keep focused fields visible above the mobile keyboard.
+(function(){
+  function scrollField(el){
+    if(!el||(el.tagName!=='INPUT'&&el.tagName!=='TEXTAREA'))return;
+    var go=function(){el.scrollIntoView({block:'center',inline:'nearest',behavior:'smooth'});};
+    setTimeout(go,50);setTimeout(go,320);
+  }
+  modal.addEventListener('focusin',function(e){scrollField(e.target);});
+  function onResize(){
+    var a=document.activeElement;
+    if(!a||!modal.contains(a))return;
+    if(a.tagName!=='INPUT'&&a.tagName!=='TEXTAREA')return;
+    a.scrollIntoView({block:'center',inline:'nearest'});
+  }
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',onResize);
+  window.addEventListener('resize',onResize);
+})();
+
 function isEmail(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);}
 document.getElementById('send').addEventListener('click',function(){
   var nm=document.getElementById('fname').value.trim();
