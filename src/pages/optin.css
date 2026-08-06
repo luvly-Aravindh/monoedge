@@ -88,6 +88,7 @@ a{color:inherit;text-decoration:none}
 .fld input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(94,14,215,.13)}
 .fld input::placeholder{color:#aaa3b8}
 .fld input[readonly]{background:var(--lav);color:#4a4360;cursor:default}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
 .prefill{background:var(--lav);border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-bottom:16px}
 .prefill .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0;font-size:13.5px}
 .prefill .row+.row{border-top:1px solid var(--line)}

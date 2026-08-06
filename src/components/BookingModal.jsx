@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { SCHED_URL, LEAD_ENDPOINT, LEAD_MAGNET } from '../data/content.js';
+import { SCHED_URL } from '../data/content.js';
+import { submitLead } from '../lib/submitLead.js';
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 const digits10 = (v) => v.replace(/[^0-9]/g, '').slice(0, 10);
@@ -76,7 +77,9 @@ export default function BookingModal({ open, onClose, prefill }) {
 
   const onBackdrop = (e) => { if (e.target === e.currentTarget) onClose(); };
 
-  const book = () => {
+  const book = async () => {
+    if (sending) return;
+
     const cold = showCold;
     const nm = cold ? cName.trim() : pName;
     const em = cold ? cEmail.trim() : pEmail;
@@ -93,10 +96,7 @@ export default function BookingModal({ open, onClose, prefill }) {
 
     const phoneE164 = '+91' + ph;
 
-    let done = false;
-    const go = () => {
-      if (done) return;
-      done = true;
+    const redirect = () => {
       window.location.href =
         SCHED_URL +
         '&name=' + encodeURIComponent(nm) +
@@ -105,26 +105,24 @@ export default function BookingModal({ open, onClose, prefill }) {
         '&phone=' + encodeURIComponent(phoneE164);
     };
 
-    try {
-      fetch(LEAD_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-        body: JSON.stringify({
-          name: nm,
-          email: em,
-          phone: phoneE164,
-          whatsapp: '',
-          company: co,
-          lead_magnet: LEAD_MAGNET,
-          source: 'landing-booking',
-          page: window.location.href,
-          ts: new Date().toISOString(),
-        }),
-      }).then(go, go);
-    } catch (e) { go(); }
+    const result = await submitLead({
+      form: 'contact',
+      fields: {
+        name: nm,
+        email: em,
+        phone: phoneE164,
+        company: co,
+        honeypot: '',
+      },
+    });
 
-    setTimeout(go, 2500);
+    if (!result.ok && !result.skipped) {
+      setSending(false);
+      setErr('Something went wrong. Please try again.');
+      return;
+    }
+
+    redirect();
   };
 
   return (

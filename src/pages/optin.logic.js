@@ -1,5 +1,6 @@
+import { submitLead } from '../lib/submitLead.js';
+
 export function run(){
-var LEAD_WEBHOOK_URL='https://getnos.io/monoedge/submit.php';
 var LANDING_URL='landing.html?v=1781847973';
 var modal=document.getElementById('m');
 function openM(){modal.classList.add('on');document.body.style.overflow='hidden';setTimeout(function(){var e=document.getElementById('fname');if(e)e.focus();},120);}
@@ -9,7 +10,6 @@ document.getElementById('mx').addEventListener('click',closeM);
 modal.addEventListener('click',function(e){if(e.target===modal)closeM();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.classList.contains('on'))closeM();});
 
-// Keep focused fields visible above the mobile keyboard.
 (function(){
   function scrollField(el){
     if(!el||(el.tagName!=='INPUT'&&el.tagName!=='TEXTAREA'))return;
@@ -28,18 +28,35 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.class
 })();
 
 function isEmail(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);}
-document.getElementById('send').addEventListener('click',function(){
+
+document.getElementById('send').addEventListener('click',async function(){
   var nm=document.getElementById('fname').value.trim();
   var em=document.getElementById('email').value.trim();
+  var hpEl=document.getElementById('website');
+  var hp=hpEl?hpEl.value:'';
   var err=document.getElementById('err');err.textContent='';
   if(nm.length<2){err.textContent='Please enter your full name.';return;}
   if(!isEmail(em)){err.textContent='Please enter a valid work email.';return;}
-  var btn=this;btn.disabled=true;btn.classList.add('sent');btn.textContent='Sending it to your inbox...';
-  var payload={name:nm,email:em,lead_magnet:'7 Ways a Manufacturing Plant Dies',source:'optin',page:window.location.href,ts:new Date().toISOString()};
-  var done=false;
-  function go(){if(done)return;done=true;location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);}
-  try{fetch(LEAD_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),keepalive:true}).then(go,go);}catch(e){go();}
-  setTimeout(go,2500);
+
+  var btn=this;
+  btn.disabled=true;
+  btn.classList.add('sent');
+  btn.textContent='Sending it to your inbox...';
+
+  var result=await submitLead({
+    form:'optin',
+    fields:{name:nm,email:em,honeypot:hp},
+  });
+
+  if(!result.ok&&!result.skipped){
+    btn.disabled=false;
+    btn.classList.remove('sent');
+    btn.textContent='Send me the guide';
+    err.textContent='Something went wrong. Please try again.';
+    return;
+  }
+
+  location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);
 });
 ;
 (function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});})();
