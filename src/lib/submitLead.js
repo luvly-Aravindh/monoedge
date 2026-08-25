@@ -2,7 +2,7 @@
 // Call ONCE per form submit. Each answer is its own JSON field.
 
 const DESK_URL = 'https://deskbackend.getnos.io/v1/lead';
-const API_KEY = 'lh_o6gzoWoji2jEkRU-hVMiBXkbLKbf0WyVHKeHL6OrG3k';
+const API_KEY = 'lh_vH7BjtjqbrTgKAEFvZKip0OyCg80AlSsQoSxgiprPFA';
 
 let submitting = false;
 
