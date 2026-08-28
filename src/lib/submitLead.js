@@ -1,18 +1,16 @@
 // Getnos Desk — direct lead submit (no PHP proxy).
-// Call ONCE per form submit. Each answer is its own JSON field.
+// ONE POST per visitor: only the booking step calls this (not opt-in).
 
 const DESK_URL = 'https://deskbackend.getnos.io/v1/lead';
 const API_KEY = 'lh_vH7BjtjqbrTgKAEFvZKip0OyCg80AlSsQoSxgiprPFA';
+const DESK_FORM = 'contact';
 
 let submitting = false;
 
 /**
- * @param {object} opts
- * @param {string} opts.form — Desk form id (e.g. "contact", "optin")
- * @param {object} opts.fields — flat field map
- * @returns {Promise<{ ok: boolean, duplicate?: boolean, leadId?: string, skipped?: boolean, error?: boolean }>}
+ * @param {object} fields — flat field map (name, email, phone, company, …)
  */
-export async function submitLead({ form, fields }) {
+export async function submitLead(fields) {
   if (submitting) {
     return { ok: true, duplicate: true, skipped: true };
   }
@@ -20,10 +18,11 @@ export async function submitLead({ form, fields }) {
 
   try {
     const body = {
-      form,
+      form: DESK_FORM,
       name: (fields.name || '').trim(),
       email: (fields.email || '').trim(),
       honeypot: (fields.honeypot || '').trim(),
+      landingPage: (fields.landingPage || window.location.href || '').trim(),
     };
 
     const optional = ['phone', 'company', 'business', 'revenue', 'budget', 'solution', 'bottleneck'];

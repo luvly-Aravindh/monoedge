@@ -106,14 +106,12 @@ export default function BookingModal({ open, onClose, prefill }) {
     };
 
     const result = await submitLead({
-      form: 'contact',
-      fields: {
-        name: nm,
-        email: em,
-        phone: phoneE164,
-        company: co,
-        honeypot: '',
-      },
+      name: nm,
+      email: em,
+      phone: phoneE164,
+      company: co,
+      landingPage: window.location.href,
+      honeypot: '',
     });
 
     if (!result.ok && !result.skipped) {

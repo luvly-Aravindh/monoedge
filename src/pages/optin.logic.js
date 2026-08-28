@@ -1,5 +1,3 @@
-import { submitLead } from '../lib/submitLead.js';
-
 export function run(){
 var LANDING_URL='landing.html?v=1781847973';
 var modal=document.getElementById('m');
@@ -29,12 +27,14 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.class
 
 function isEmail(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);}
 
-document.getElementById('send').addEventListener('click',async function(){
+// Opt-in does NOT call Desk — one email only when they complete booking on landing.
+document.getElementById('send').addEventListener('click',function(){
   var nm=document.getElementById('fname').value.trim();
   var em=document.getElementById('email').value.trim();
   var hpEl=document.getElementById('website');
   var hp=hpEl?hpEl.value:'';
   var err=document.getElementById('err');err.textContent='';
+  if(hp){return;}
   if(nm.length<2){err.textContent='Please enter your full name.';return;}
   if(!isEmail(em)){err.textContent='Please enter a valid work email.';return;}
 
@@ -42,19 +42,6 @@ document.getElementById('send').addEventListener('click',async function(){
   btn.disabled=true;
   btn.classList.add('sent');
   btn.textContent='Sending it to your inbox...';
-
-  var result=await submitLead({
-    form:'optin',
-    fields:{name:nm,email:em,honeypot:hp},
-  });
-
-  if(!result.ok&&!result.skipped){
-    btn.disabled=false;
-    btn.classList.remove('sent');
-    btn.textContent='Send me the guide';
-    err.textContent='Something went wrong. Please try again.';
-    return;
-  }
 
   location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);
 });
