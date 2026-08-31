@@ -1,1 +1,0 @@
-import{r,j as s}from"./tailwind-B2MIFvA5.js";function o({html:e,run:t}){return r.useEffect(()=>{if(typeof t=="function"){const n=requestAnimationFrame(()=>t());return()=>cancelAnimationFrame(n)}},[t]),s.jsx("div",{className:"contents",dangerouslySetInnerHTML:{__html:e}})}export{o as P};

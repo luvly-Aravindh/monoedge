@@ -3,7 +3,12 @@ import { SCHED_URL } from '../data/content.js';
 import { submitLead } from '../lib/submitLead.js';
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
-const digits10 = (v) => v.replace(/[^0-9]/g, '').slice(0, 10);
+const digits10 = (v) => {
+  const d = String(v || '').replace(/[^0-9]/g, '');
+  if (d.length === 12 && d.startsWith('91')) return d.slice(2);
+  if (d.length === 11 && d.startsWith('0')) return d.slice(1);
+  return d.slice(0, 10);
+};
 
 // Booking modal. Collects company + mobile on the landing page, then sends
 // name/email/phone into Calendly so the calendar is prefilled.
@@ -141,6 +146,12 @@ export default function BookingModal({ open, onClose, prefill }) {
               <span className="k">Work email</span>
               <span className="v" id="r_email">{pEmail}</span>
             </div>
+            {pPhone && (
+              <div className="row">
+                <span className="k">Mobile</span>
+                <span className="v" id="r_phone">{pPhone.startsWith('+') ? pPhone : '+91' + digits10(pPhone)}</span>
+              </div>
+            )}
             <div style={{ textAlign: 'right', marginTop: '8px' }}>
               <span className="edit" id="editlink" onClick={onEdit}>Not you? Edit</span>
             </div>

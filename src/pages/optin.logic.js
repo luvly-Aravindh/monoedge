@@ -1,6 +1,9 @@
 export function run(){
-var LANDING_URL='landing.html?v=1781847973';
+var LANDING_URL='landing.html?from=guide&v=1781847973';
 var modal=document.getElementById('m');
+var sendBtn=document.getElementById('send');
+if(!modal||!sendBtn)return;
+
 function openM(){modal.classList.add('on');document.body.style.overflow='hidden';setTimeout(function(){var e=document.getElementById('fname');if(e)e.focus();},120);}
 function closeM(){modal.classList.remove('on');document.body.style.overflow='';}
 document.querySelectorAll('[data-open]').forEach(function(b){b.addEventListener('click',openM);});
@@ -26,24 +29,76 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modal.class
 })();
 
 function isEmail(v){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);}
+function digits10(v){
+  var d=String(v||'').replace(/[^0-9]/g,'');
+  if(d.length===12&&d.indexOf('91')===0)return d.slice(2);
+  if(d.length===11&&d.indexOf('0')===0)return d.slice(1);
+  return d.slice(0,10);
+}
 
-// Opt-in does NOT call Desk — one email only when they complete booking on landing.
-document.getElementById('send').addEventListener('click',function(){
-  var nm=document.getElementById('fname').value.trim();
-  var em=document.getElementById('email').value.trim();
-  var hpEl=document.getElementById('website');
-  var hp=hpEl?hpEl.value:'';
-  var err=document.getElementById('err');err.textContent='';
-  if(hp){return;}
-  if(nm.length<2){err.textContent='Please enter your full name.';return;}
-  if(!isEmail(em)){err.textContent='Please enter a valid work email.';return;}
+var phoneInput=document.getElementById('phone');
+if(phoneInput){
+  phoneInput.addEventListener('input',function(){
+    this.value=digits10(this.value);
+    var pe=document.getElementById('phone_err');
+    if(pe&&pe.textContent&&(this.value.length===10||this.value.length===0)){
+      pe.textContent='';pe.hidden=true;this.classList.remove('input-err');
+    }
+  });
+  phoneInput.addEventListener('blur',function(){
+    var pe=document.getElementById('phone_err');
+    if(this.value.length>0&&this.value.length!==10){
+      if(pe){pe.textContent='Please enter a valid 10 digit mobile number.';pe.hidden=false;}
+      this.classList.add('input-err');
+    }
+  });
+}
 
-  var btn=this;
-  btn.disabled=true;
-  btn.classList.add('sent');
-  btn.textContent='Sending it to your inbox...';
+var submitting=false;
 
-  location.href=LANDING_URL+'&from=guide&name='+encodeURIComponent(nm)+'&email='+encodeURIComponent(em);
+function handleSubmit(){
+  if(submitting)return;
+  var nm=(document.getElementById('fname')||{}).value;
+  nm=nm?nm.trim():'';
+  var em=(document.getElementById('email')||{}).value;
+  em=em?em.trim():'';
+  var phoneEl=document.getElementById('phone');
+  var ph=phoneEl?digits10(phoneEl.value):'';
+  var hpEl=document.getElementById('bb_hp');
+  var hp=hpEl?hpEl.value.trim():'';
+  var err=document.getElementById('err');
+  var phoneErr=document.getElementById('phone_err');
+  if(err)err.textContent='';
+  if(phoneErr){phoneErr.textContent='';phoneErr.hidden=true;}
+  if(phoneEl)phoneEl.classList.remove('input-err');
+
+  // Honeypot filled = bot; ignore silently.
+  if(hp)return;
+
+  if(nm.length<2){if(err)err.textContent='Please enter your full name.';return;}
+  if(!isEmail(em)){if(err)err.textContent='Please enter a valid work email.';return;}
+  if(ph.length!==10){
+    if(phoneErr){phoneErr.textContent='Please enter a valid 10 digit mobile number.';phoneErr.hidden=false;}
+    if(phoneEl){phoneEl.classList.add('input-err');phoneEl.focus();}
+    return;
+  }
+
+  submitting=true;
+  sendBtn.disabled=true;
+  sendBtn.classList.add('sent');
+  sendBtn.textContent='Sending it to your inbox...';
+
+  var phoneE164='+91'+ph;
+  location.href=
+    LANDING_URL+
+    '&name='+encodeURIComponent(nm)+
+    '&email='+encodeURIComponent(em)+
+    '&phone='+encodeURIComponent(phoneE164);
+}
+
+sendBtn.addEventListener('click',handleSubmit);
+sendBtn.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();handleSubmit();}
 });
 ;
 (function(){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});})();

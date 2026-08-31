@@ -222,13 +222,38 @@
         placeholder="you@company.com"
       />
     </div>
+    <div class="fld">
+      <label for="phone">Mobile number</label>
+      <div class="phone">
+        <span class="cc">
+          <span class="tri"><i></i><i></i><i></i></span>
+          +91
+        </span>
+        <input
+          id="phone"
+          type="tel"
+          inputmode="numeric"
+          autocomplete="tel-national"
+          placeholder="98765 43210"
+        />
+      </div>
+      <div class="fld-err" id="phone_err" hidden></div>
+    </div>
     <div class="fld hp" aria-hidden="true">
-      <label for="website">Website</label>
-      <input id="website" type="text" name="website" tabindex="-1" autocomplete="off" />
+      <label for="bb_hp">Leave blank</label>
+      <input
+        id="bb_hp"
+        type="text"
+        name="bb_hp"
+        tabindex="-1"
+        autocomplete="off"
+        data-lpignore="true"
+        data-1p-ignore
+      />
     </div>
     <div class="err" id="err"></div>
     <span class="cta-wrap"
-      ><button class="btn" id="send">Send me the guide</button></span
+      ><button class="btn" id="send" type="button">Send me the guide</button></span
     >
     <p class="mmicro">
       We send the guide and the occasional plant intelligence note. Unsubscribe

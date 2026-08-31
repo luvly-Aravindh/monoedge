@@ -283,6 +283,8 @@ a{color:inherit;text-decoration:none}
 
 /* iOS Safari: keep form inputs >=16px on phones AND tablets so focus never auto-zooms */
 @media(max-width:900px){.fld input,.cc{font-size:16px}}
+.fld-err{color:#d61f5c;font-size:12px;font-weight:600;margin-top:6px;line-height:1.35}
+.fld input.input-err{border-color:#d61f5c;box-shadow:0 0 0 3px rgba(214,31,92,.12)}
 
 /* Mobile keyboard: pin modal to top and leave room to scroll focused fields into view */
 @media(max-width:900px){
